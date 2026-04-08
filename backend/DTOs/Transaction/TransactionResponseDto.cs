@@ -1,0 +1,35 @@
+namespace backend.DTOs.Transaction
+{
+    public class TransactionResponseDto
+    {
+        public int Id { get; set; }
+
+        public int CompanyId { get; set; }
+
+        public string CompanyName { get; set; } = string.Empty;
+
+        public DateTime Date { get; set; }
+
+        public string DocumentNo { get; set; } = string.Empty;
+
+        public string AccountCode { get; set; } = string.Empty;
+
+        public string AccountName { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty;
+
+        public decimal Debit { get; set; }
+    
+        public decimal Credit { get; set; }
+
+        public decimal NetEffect { get; set; }
+
+        public string TransactionType { get; set; } = string.Empty;
+        
+        public string EntryMethod { get; set; } = string.Empty;
+
+        public string Currency { get; set; } = string.Empty;
+
+        public string Status { get; set; } = string.Empty;
+    }
+}
