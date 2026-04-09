@@ -68,11 +68,20 @@ namespace backend.Controllers
             stream.Position = 0;
 
             using var package = new ExcelPackage(stream);
-            var worksheet = package.Workbook.Worksheets["Upload_Companies_Template"];
+            var isNewFormat = false;
+            var worksheet = package.Workbook.Worksheets["Companies"];
+            if (worksheet != null)
+            {
+                isNewFormat = true;
+            }
+            else
+            {
+                worksheet = package.Workbook.Worksheets["Upload_Companies_Template"];
+            }
             
             if (worksheet == null)
             {
-                return BadRequest("Excel dosyasında geçerli bir sayfa bulunamadı.");
+                return BadRequest("Excel dosyasında 'Companies' veya 'Upload_Companies_Template' sayfası bulunamadı.");
             }
 
             var rowCount = worksheet.Dimension?.Rows ?? 0;
@@ -89,11 +98,24 @@ namespace backend.Controllers
             
             for (int row = 2; row <= rowCount; row++)
             {
-                var name = worksheet.Cells[row,1].Text;
-                var taxNumber = worksheet.Cells[row,2].Text;
-                var city = worksheet.Cells[row,3].Text;
-                var sector = worksheet.Cells[row,4].Text;
-                var isActiveText = worksheet.Cells[row,5].Text;
+                string name, taxNumber, city, sector, isActiveText;
+
+                if (isNewFormat)
+                {
+                    name = worksheet.Cells[row, 2].Text;
+                    taxNumber = worksheet.Cells[row, 3].Text;
+                    city = worksheet.Cells[row, 4].Text;
+                    sector = worksheet.Cells[row, 5].Text;
+                    isActiveText = worksheet.Cells[row, 6].Text;
+                }
+                else
+                {
+                    name = worksheet.Cells[row, 1].Text;
+                    taxNumber = worksheet.Cells[row, 2].Text;
+                    city = worksheet.Cells[row, 3].Text;
+                    sector = worksheet.Cells[row, 4].Text;
+                    isActiveText = worksheet.Cells[row, 5].Text;
+                }
 
                 if (string.IsNullOrWhiteSpace(name))
                 {

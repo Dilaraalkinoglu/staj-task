@@ -12,6 +12,7 @@ namespace backend.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<Company> Companies => Set<Company>();
         public DbSet<Transaction> Transactions => Set<Transaction>();
+        public DbSet<Account> Accounts => Set<Account>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

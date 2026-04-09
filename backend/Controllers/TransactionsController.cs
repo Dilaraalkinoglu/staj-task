@@ -72,11 +72,20 @@ namespace backend.Controllers
             stream.Position = 0;
 
             using var package = new ExcelPackage(stream);
-            var worksheet = package.Workbook.Worksheets["Upload_Transactions_Template"];
+            var isNewFormat = false;
+            var worksheet = package.Workbook.Worksheets["Transactions"];
+            if (worksheet != null)
+            {
+                isNewFormat = true;
+            }
+            else
+            {
+                worksheet = package.Workbook.Worksheets["Upload_Transactions_Template"];
+            }
 
             if (worksheet == null)
             {
-                return BadRequest("Excel dosyasında 'Upload_Transactions_Template' sayfası bulunamadı.");
+                return BadRequest("Excel dosyasında 'Transactions' veya 'Upload_Transactions_Template' sayfası bulunamadı.");
             }
 
             var rowCount = worksheet.Dimension?.Rows ?? 0;
@@ -92,16 +101,39 @@ namespace backend.Controllers
             {
                 try
                 {
-                    var companyIdText = worksheet.Cells[row, 1].Text.Trim();
-                    var dateText = worksheet.Cells[row, 2].Text.Trim();
-                    var documentNo = worksheet.Cells[row, 3].Text.Trim();
-                    var accountCode = worksheet.Cells[row, 4].Text.Trim();
-                    var accountName = worksheet.Cells[row, 5].Text.Trim();
-                    var description = worksheet.Cells[row, 6].Text.Trim();
-                    var debitText = worksheet.Cells[row, 7].Text.Trim();
-                    var creditText = worksheet.Cells[row, 8].Text.Trim();
-                    var transactionType = worksheet.Cells[row, 9].Text.Trim();
-                    var entryMethod = worksheet.Cells[row, 10].Text.Trim();
+                    string companyIdText, dateText, documentNo, accountCode, accountName, description, debitText, creditText, transactionType, entryMethod, currency, status;
+
+                    if (isNewFormat)
+                    {
+                        companyIdText = worksheet.Cells[row, 2].Text.Trim();
+                        dateText = worksheet.Cells[row, 4].Text.Trim();
+                        documentNo = worksheet.Cells[row, 5].Text.Trim();
+                        accountCode = worksheet.Cells[row, 6].Text.Trim();
+                        accountName = worksheet.Cells[row, 7].Text.Trim();
+                        description = worksheet.Cells[row, 8].Text.Trim();
+                        debitText = worksheet.Cells[row, 9].Text.Trim();
+                        creditText = worksheet.Cells[row, 10].Text.Trim();
+                        // 11 is NetEffect
+                        transactionType = worksheet.Cells[row, 12].Text.Trim();
+                        entryMethod = worksheet.Cells[row, 13].Text.Trim();
+                        currency = worksheet.Cells[row, 14].Text.Trim();
+                        status = worksheet.Cells[row, 15].Text.Trim();
+                    }
+                    else
+                    {
+                        companyIdText = worksheet.Cells[row, 1].Text.Trim();
+                        dateText = worksheet.Cells[row, 2].Text.Trim();
+                        documentNo = worksheet.Cells[row, 3].Text.Trim();
+                        accountCode = worksheet.Cells[row, 4].Text.Trim();
+                        accountName = worksheet.Cells[row, 5].Text.Trim();
+                        description = worksheet.Cells[row, 6].Text.Trim();
+                        debitText = worksheet.Cells[row, 7].Text.Trim();
+                        creditText = worksheet.Cells[row, 8].Text.Trim();
+                        transactionType = worksheet.Cells[row, 9].Text.Trim();
+                        entryMethod = worksheet.Cells[row, 10].Text.Trim();
+                        currency = "TRY"; // Default
+                        status = "Onaylı"; // Default
+                    }
 
                     // Tamamen boş satırı atla
                     if (string.IsNullOrWhiteSpace(companyIdText) &&
@@ -152,7 +184,9 @@ namespace backend.Controllers
                         Debit = debit,
                         Credit = credit,
                         TransactionType = transactionType,
-                        EntryMethod = string.IsNullOrWhiteSpace(entryMethod) ? "ExcelUpload" : entryMethod
+                        EntryMethod = string.IsNullOrWhiteSpace(entryMethod) ? "ExcelUpload" : entryMethod,
+                        Currency = currency,
+                        Status = status
                     };
 
                     var isDuplicate = await _transactionService.ExistsAsync(
